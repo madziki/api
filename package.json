@@ -1,0 +1,19 @@
+{
+  "name": "madziki-api",
+  "version": "1.0.0",
+  "description": "The madziki api.",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madziki/madziki-api.git"
+  },
+  "author": "Anthony Milano",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/madziki/madziki-api/issues"
+  },
+  "homepage": "https://github.com/madziki/madziki-api#readme"
+}
