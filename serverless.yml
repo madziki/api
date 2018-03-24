@@ -1,0 +1,83 @@
+service: madziki
+
+provider:
+  name: aws
+  versionFunctions: false
+  runtime: nodejs6.10
+  profile: serverless-user
+  stage: dev
+  deploymentBucket: madziki-serverless
+  memorySize: 256
+  environment:
+    MOVEMENTS_TABLE: { "Ref": "MovementsTable" } #DynamoDbExpenses is a logicalID also used when provisioning below
+    USERS_TABLE: { "Ref": "UsersTable" }
+
+functions:
+  postMovement:
+    handler: index.postMovement
+    events:
+      - http:
+          path: movements
+          method: post
+  listMovements:
+    handler: index.listMovements
+    events:
+      - http:
+          path: movements
+          method: get
+#    environment:
+#      PASSWORD_ITERATIONS: 4096
+#      PASSWORD_DERIVED_KEY_LENGTH: 256
+
+package:
+  exclude:
+    - .gitignore
+    - Makefile
+    - .idea/**
+    - serverless.yml
+
+resources:
+  Resources:
+    MovementsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+        - AttributeName: Name
+          AttributeType: S
+        - AttributeName: Owner
+          AttributeType: S
+        KeySchema:
+        - AttributeName: Owner
+          KeyType: HASH
+        - AttributeName: Name
+          KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: '5'
+          WriteCapacityUnits: '5'
+        TableName:
+          Fn::Join:
+            - '-'
+            - - Ref: AWS::StackName
+              - "movements"
+
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+        - AttributeName: Username
+          AttributeType: S
+        - AttributeName: Active
+          AttributeType: B
+        KeySchema:
+        - AttributeName: Username
+          KeyType: HASH
+        - AttributeName: Active
+          KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: '5'
+          WriteCapacityUnits: '5'
+        TableName:
+          Fn::Join:
+            - '-'
+            - - Ref: AWS::StackName
+              - 'user'

@@ -1,0 +1,7 @@
+
+.idea
+NERD*
+
+dist
+.serverless
+node_modules
