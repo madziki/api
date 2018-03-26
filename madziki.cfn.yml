@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  #
+  # Lambda functions
+  #
+  functions:
+    listMovements:
+      Type: AWS::Serverless::Function
+      Properties:
+        Handler: index.listMovements
+        Runtime: nodejs6.10
+        Policies: AWSLambdaDynamoDBExecutionRole
+        CodeUri: s3://madziki-serverless/madziki-lambda.zip
+        Environment:
+          Variables:
+            TABLE_NAME: !Ref MovementsTable
+    postMovement:
+      Type: AWS::Serverless::Function
+      Properties:
+        Handler: index.postMovement
+        Runtime: nodejs6.10
+        Policies: AWSLambdaDynamoDBExecutionRole
+        CodeUri: s3://madziki-serverless/madziki-lambda.zip
+        Environment:
+          Variables:
+            TABLE_NAME: !Ref MovementsTable
+  #
+  # Tables
+  #
+  MovementsTable:
+        Type: AWS::DynamoDB::Table
+        Properties:
+          AttributeDefinitions:
+          - AttributeName: Name
+            AttributeType: S
+          - AttributeName: Owner
+            AttributeType: S
+          KeySchema:
+          - AttributeName: Owner
+            KeyType: HASH
+          - AttributeName: Name
+            KeyType: RANGE
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '5'
+          TableName:
+            Fn::Join:
+              - '-'
+              - - Ref: AWS::StackName
+                - "movements"
+
+      UsersTable:
+        Type: AWS::DynamoDB::Table
+        Properties:
+          AttributeDefinitions:
+          - AttributeName: Username
+            AttributeType: S
+          - AttributeName: Active
+            AttributeType: B
+          KeySchema:
+          - AttributeName: Username
+            KeyType: HASH
+          - AttributeName: Active
+            KeyType: RANGE
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '5'
+          TableName:
+            Fn::Join:
+              - '-'
+              - - Ref: AWS::StackName
+                - 'users'

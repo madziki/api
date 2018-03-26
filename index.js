@@ -2,22 +2,33 @@
 
 const assert = require('assert')
 const AWS = require('aws-sdk')
-AWS.config.update({
-  region: 'us-east-1'
-})
 
-const client = new AWS.DynamoDB.DocumentClient({apiVersion: '2012-08-10'})
-
+const client = new AWS.DynamoDB.DocumentClient()
 
 const listMovements = (event, context, callback) => {
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify({
-      data: []
-    }),
+  const limit = event.Limit ? event.Limit : 10
+
+  const params = {
+    TableName: process.env.MOVEMENTS_TABLE,
+    // TableName: 'madziki-movements',
+    KeyConditionExpression: '#Owner = :Owner',
+    ExpressionAttributeNames: {
+      '#Owner': 'Owner'
+    },
+    ExpressionAttributeValues: {
+      ':Owner': event.Owner
+    },
+    Limit: limit
   }
 
-  callback(null, response)
+  if (event.Offset) {
+    params.ExclusiveStartKey = event.Offset
+  }
+
+  client.query(params, (err, data) => {
+    if (err) callback(err)
+    else callback(null, data)
+  })
 }
 
 const postMovement = (event, context, callback) => {
@@ -35,7 +46,7 @@ const postMovement = (event, context, callback) => {
     TableName: process.env.MOVEMENTS_TABLE,
     Item: item
   }
-  client.put(params, (err, data) => {
+  client.put(params, (err) => {
     if (err) {
       callback(err)
     } else {
@@ -113,7 +124,11 @@ const getMovement = (event, context, callback) => {
     if (err) {
       callback(err)
     } else {
-      callback(null, data && data.Item ? data.Item : data)
+      if (data.Item) {
+        callback(null, data.Item)
+      } else {
+        callback()
+      }
     }
   })
 }

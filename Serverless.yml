@@ -6,11 +6,26 @@ provider:
   runtime: nodejs6.10
   profile: serverless-user
   stage: dev
-  deploymentBucket: madziki-serverless
+  #  deploymentBucket: madziki-serverless
   memorySize: 256
+   # Allow for cf "AWS::" variables, see https://serverless.com/framework/docs/providers/aws/guide/variables#using-custom-variable-syntax
+#  variableSyntax: "\\${(?!AWS::)([ :a-zA-Z0-9._,\\-\\/\\(\\)]+?)}"
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: arn:aws:dynamodb:*:553670172214:table/madziki-*
   environment:
     MOVEMENTS_TABLE: { "Ref": "MovementsTable" } #DynamoDbExpenses is a logicalID also used when provisioning below
     USERS_TABLE: { "Ref": "UsersTable" }
+
+#plugins:
+#  - serverless-localstack
 
 functions:
   postMovement:
@@ -19,22 +34,36 @@ functions:
       - http:
           path: movements
           method: post
+  putMovement:
+    handler: index.putMovement
+    events:
+      - http:
+          path: movements
+          method: put
+  getMovement:
+    handler: index.getMovement
+    events:
+      - http:
+          path: movements
+          method: get
   listMovements:
     handler: index.listMovements
     events:
       - http:
           path: movements
           method: get
-#    environment:
-#      PASSWORD_ITERATIONS: 4096
-#      PASSWORD_DERIVED_KEY_LENGTH: 256
+  deleteMovement:
+    handler: index.deleteMovement
+    events:
+      - http:
+          path: movements
+          method: delete
 
 package:
   exclude:
-    - .gitignore
-    - Makefile
-    - .idea/**
-    - serverless.yml
+    - ./**
+  include:
+    - index.js
 
 resources:
   Resources:
@@ -54,6 +83,7 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: '5'
           WriteCapacityUnits: '5'
+#        TableName: 'madziki-movements'
         TableName:
           Fn::Join:
             - '-'
@@ -76,8 +106,25 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: '5'
           WriteCapacityUnits: '5'
+#        TableName: 'madziki-users'
         TableName:
           Fn::Join:
             - '-'
             - - Ref: AWS::StackName
-              - 'user'
+              - 'users'
+
+#custom:
+#  localstack:
+#    stages:
+#      - dev
+#    host: http://localhost:8080
+#    endpoints:
+#      S3: http://localhost:4572
+#      DynamoDB: http://localhost:4569
+#      CloudFormation: http://localhost:4581
+#      Elasticsearch: http://localhost:4571
+#      ES: http://localhost:4578
+#      SNS: http://localhost:4575
+#      SQS: http://localhost:4576
+#      Lambda: http://localhost:4574
+#      Kinesis: http://localhost:4568

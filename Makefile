@@ -2,6 +2,9 @@
 validate:
 	aws cloudformation validate-template --template-body file://./serverless.yml
 
+start-localstack:
+	LAMBDA_EXECUTOR=docker localstack start --docker
+
 #init:
 #	mkdir -p dist
 
@@ -21,7 +24,7 @@ validate:
 #		--stack-name madziki-dev
 
 deploy:
-#	aws cloudformation create-stack --stack-name madziki-dev --template-body file://./templates/madziki.yml
+#	aws cloudformation create-stack --stack-name madziki-dev --template-body file://./madziki.cfn.yml
 #	aws cloudformation wait stack-create-complete --stack-name madziki-dev
 	serverless deploy
 
