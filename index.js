@@ -6,17 +6,24 @@ const AWS = require('aws-sdk')
 const client = new AWS.DynamoDB.DocumentClient()
 
 const listMovements = (event, context, callback) => {
+  const owner = event.pathParameters.owner
+
+  if (!owner) {
+    // Owner is required.
+    callback("[BadRequest] Owner is a required field.'")
+    return
+  }
+
   const limit = event.Limit ? event.Limit : 10
 
   const params = {
     TableName: process.env.MOVEMENTS_TABLE,
-    // TableName: 'madziki-movements',
     KeyConditionExpression: '#Owner = :Owner',
     ExpressionAttributeNames: {
       '#Owner': 'Owner'
     },
     ExpressionAttributeValues: {
-      ':Owner': event.Owner
+      ':Owner': owner
     },
     Limit: limit
   }
@@ -27,7 +34,13 @@ const listMovements = (event, context, callback) => {
 
   client.query(params, (err, data) => {
     if (err) callback(err)
-    else callback(null, data)
+    else {
+      callback(null, {
+        "statusCode": 200,
+        "body": JSON.stringify(data, null, 2),
+        "isBase64Encoded": false
+      })
+    }
   })
 }
 
@@ -50,7 +63,11 @@ const postMovement = (event, context, callback) => {
     if (err) {
       callback(err)
     } else {
-      callback(null, item)
+      callback(null, {
+        "statusCode": 200,
+        "body": JSON.stringify(data, null, 2),
+        "isBase64Encoded": false
+      })
     }
   })
 }
@@ -89,7 +106,11 @@ const putMovement = (event = {}, context, callback) => {
     if (err) {
       callback(err)
     } else {
-      callback(null, data && data.Attributes ? data.Attributes : data)
+      callback(null, {
+        "statusCode": 200,
+        "body": JSON.stringify(data && data.Attributes ? data.Attributes : data, null, 2),
+        "isBase64Encoded": false
+      })
     }
   })
 }
@@ -107,11 +128,24 @@ const deleteMovement = (event, context, callback) => {
     if (err) {
       callback(err)
     } else {
-      callback(null, data && data.Attributes ? data.Attributes : data)
+      callback(null, {
+        "statusCode": 200,
+        "body": JSON.stringify(data && data.Attributes ? data.Attributes : data, null, 2),
+        "isBase64Encoded": false
+      })
     }
   })
 }
 
+/**
+ * TODO: Pull the request parameters from the request parameters.
+ * TODO: Add a 404 if the data can't be found.
+ * TODO: Add a 400 if an id isn't supplied.
+ * @param event
+ * @param context
+ * @param callback
+ * @returns {*}
+ */
 const getMovement = (event, context, callback) => {
   const params = {
     TableName: process.env.MOVEMENTS_TABLE,
@@ -125,9 +159,13 @@ const getMovement = (event, context, callback) => {
       callback(err)
     } else {
       if (data.Item) {
-        callback(null, data.Item)
+        callback(null, {
+          "statusCode": 200,
+          "body": JSON.stringify(data.Item),
+          "isBase64Encoded": false
+        })
       } else {
-        callback()
+        callback(`[NotFound] No movement found for Owner: ${event.Owner} and Name: ${event.Name}`)
       }
     }
   })

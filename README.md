@@ -1,6 +1,10 @@
 # Madziki API
 
+A simple microservice to manage Madziki movements.
+
 ## Installation
+
+The following commands can be used to create and remove resources.
 
 ## Deploy a Stack
 
@@ -38,28 +42,6 @@ mocha
 mocha -g <pattern>
 ```
 
-## ToDo
-
-Get stuff done.
-
-Project
-- Add linting configuration.
-
-API
-- Implement and test the list movements API.
-- Determine how to identify the current user.
-- Add error checking to the server side so the client doesn't have to check.
-
-Testing
-- Validate the result values of the API calls.
-
-Logging
-- Add console logging to the code.
-
-Local
-- Create a local dynamodb to run against.
-- Either run the required services locally or run everything in Docker.
-
 ## Lessons Learned
 
 The following are a few items I came across while building this service.
@@ -72,6 +54,27 @@ the data payload will contain error contents rather than the expected payload.  
 payload first looking for errors either in your API's or the clients will have to perform this check.
 
 https://docs.aws.amazon.com/apigateway/latest/developerguide/handle-errors-in-lambda-integration.html
+
+https://aws.amazon.com/blogs/compute/error-handling-patterns-in-amazon-api-gateway-and-aws-lambda/
+
+### Lambda Responses
+
+Lamda Node.js/JavaScript API responses expect them to be in a specific format. You can pass a status code, headers,
+bady data, etc. as part of the response.
+
+```javascript 1.6
+// Send a valid response.
+callback(null, {
+    "statusCode": 200,
+    "body": JSON.stringify(data, null, 2),
+    "isBase64Encoded": false
+})
+```
+
+If you don't return a valid response you'll most likely receive a 502 error. Read the support case below for additional
+details.
+
+https://aws.amazon.com/premiumsupport/knowledge-center/malformed-502-api-gateway/
 
 ### Local Stack
 
@@ -147,6 +150,10 @@ Here is the specification for the Serverless.yml file.
 
 https://serverless.com/framework/docs/providers/aws/guide/serverless.yml/
 
+Below is a link to the Lambda configuration for Serverless.
+
+https://serverless.com/framework/docs/providers/aws/events/apigateway/#simple-http-endpoint
+
 ##### Stages
 
 Serverless has a concept of stages that allow you to easily manage your different environments.  I found it useful that
@@ -179,3 +186,31 @@ package:
 Serverless allows you to manage much of your infrastructure in a Cloud Formation like syntax.  In many ways the syntax
 improves upon Cloud Formation but there are bits and pieces that are not supported.  Overall, there are a lot of 
 advantages but it also means you must know two different syntax, Cloud Formation and Serverless.
+
+## ToDo
+
+Get stuff done.
+
+Project
+- Add linting configuration.
+
+API
+- Add 404's where appropriate in the API responses.
+- Add error checking to the server side so the client doesn't have to check.
+
+Security
+- Use Cognito to allow users to authenticate.
+- Keep track of simple session data for users.
+
+Domain
+- Configure the API under the domain.
+
+Testing
+- Validate the result values of the API calls.
+
+Logging
+- Add console logging to the code.
+
+Local
+- Create a local dynamodb to run against.
+- Either run the required services locally or run everything in Docker.
